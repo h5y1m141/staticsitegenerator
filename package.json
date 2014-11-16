@@ -1,0 +1,24 @@
+{
+  "name": "staticsitegenerator",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hiroshi Oyamada",
+  "license": "BSD",
+  "dependencies": {
+    "cron": "~1.0.5",
+    "moment": "~2.8.3",
+    "config": "~1.8.1",
+    "acs-node": "~0.9.3",
+    "grunt": "~0.4.5",
+    "grunt-contrib-coffee": "~0.12.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "jasmine-node": "~1.14.5",
+    "jasmine": "~2.1.0",
+    "moment-timezone": "~0.2.5",
+    "underscore": "~1.7.0"
+  }
+}
