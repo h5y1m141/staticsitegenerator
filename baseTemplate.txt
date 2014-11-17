@@ -5,11 +5,13 @@
     <link rel="stylesheet" href="css/style.css">
     <meta name="viewport" content="width=device-width,minimum-scale=1">
     <meta charset="UTF-8">
-    <link href="css/bootstrap.css" type="text/css" rel="stylesheet">
-    <link href="css/font-awesome.css" type="text/css" rel="stylesheet">
-    <link href="css/bootstrap-responsive.min.css" rel="stylesheet">
-    <link href="css/userdefine.css" type="text/css" rel="stylesheet">
-    <script type="text/javascript" src="js/jquery.js"></script>
+    <meta name="keywords" content="クラフトビール、craftbeer, <%= state %>のクラフトビールが飲めるお店, <%= state %>でクラフトビールが買えるお店">
+    <meta name="description" content="<%= state %>でクラフトビールが飲めるお店やクラフトビールが買える酒屋さんスーパーについてまとめてます。">
+    <link href="../../css/bootstrap.css" type="text/css" rel="stylesheet">
+    <link href="../../css/font-awesome.css" type="text/css" rel="stylesheet">
+    <link href="../../css/bootstrap-responsive.min.css" rel="stylesheet">
+    <link href="../../css/userdefine.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="../../js/jquery.js"></script>
     <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false"></script>
   </head>
   <body>
@@ -19,14 +21,14 @@
           <div class="nav-collapse">
             <ul class="nav">
               <li class="divider-vertical"></li>
-              <li><a href="/" class="brand"><img src="img/appicon.png" alt="サイトロゴ" class="thumbnail"></a></li>
+              <li><a href="/" class="brand"><img src="../../img/appicon.png" alt="サイトロゴ" class="thumbnail"></a></li>
               <li><span class="icon-bar"></span>
-                <h3>神奈川県のクラフトビールが飲める・買えるお店</h3>
+                <h3><%= state %>のクラフトビールが飲める・買えるお店</h3>
               </li>
             </ul>
             <ul class="nav pull-right">
-              <li><a href="https://itunes.apple.com/us/app/craftbeerfan/id687522439?l=ja&amp;ls=1&amp;mt=8"><img src="img/available_iphone.png" alt="AppStoreへのリンク先のロゴ"></a></li>
-              <li><a href="https://play.google.com/store/apps/details?id=info.h5y1m141.CraftBeerFan"><img src="img/available_google_play.png"></a></li>
+              <li><a href="https://itunes.apple.com/us/app/craftbeerfan/id687522439?l=ja&amp;ls=1&amp;mt=8"><img src="../../img/available_iphone.png" alt="AppStoreへのリンク先のロゴ"></a></li>
+              <li><a href="https://play.google.com/store/apps/details?id=info.h5y1m141.CraftBeerFan"><img src="../../img/available_google_play.png"></a></li>
             </ul>
           </div>
         </div>
@@ -34,6 +36,14 @@
     </div>
     <div class="container-fluid">
       <div class="row-fluid">
+        <ul class="breadcrumb">
+          <li><a href="/">Top</a></li>
+          <span class="divider">/</span>
+          <li><a href="/prefecture/<%= prefecture_cd %>/"><%= state %></a></li>
+          <span class="divider">/</span>
+          <li class="active"><%= name %></li>
+        </ul>
+
         <div class="span12">
           <div id="map_canvas"></div>
         </div>
@@ -51,11 +61,24 @@
             </div>
           </div>
           <h4>お店について</h4>
-          <ul>
-            <li>住所：<%= address %></li>
-            <li>電話番号：<%= phone_number %></li>
-            <li>お店のWebサイト：<%= website %></li>
-          </ul>
+          <table class="table table-striped">
+            <tr>
+              <td>お店のカテゴリ：<%= category %></td>
+            </tr>
+            <tr>
+              <td>住所：<%= address %></td>
+            </tr>
+            <tr>
+              <td>電話番号：<%= phone_number %></td>
+            </tr>
+            <tr>
+              <td>お店のWebサイト：<%= website %></td>
+            </tr>
+            <tr>
+              <td>備考：<%= shop_data %></td>
+            </tr>
+
+          </table>
         </div>
         <div class="span4">
           <div class="navbar">
@@ -72,6 +95,23 @@
       </div>
     </div>
   </body>
-  <script type="text/javascript" src="js/craftBeerShopMap.js"></script>
-  <script type="text/javascript" src="js/ga.js"></script>
+  <script type="text/javascript" src="../../js/ga.js"></script>
+  <script type="text/javascript">
+$(document).ready(function(){
+  var _latlng,mapOptions,map,_marker;
+  _latlng = new google.maps.LatLng(<%= latitude %>,<%= longitude %>);
+	var mapOptions = {
+		zoom: 15,
+		center: _latlng,
+		mapTypeId: google.maps.MapTypeId.ROADMAP
+	};
+	var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+  var _marker = new google.maps.Marker({
+					position:_latlng,
+					map:map,
+				});
+  
+
+});
+  </script>  
 </html>

@@ -3,16 +3,16 @@ class ACS
     @ACS = require('acs-node')
     conf = require('config')
     @ACS.init(conf.acs.production)
-    
-  fetch_places:(callback) ->
+
+  fetch_places:(prefecture_name,callback) ->
     _login(@ACS,(response) =>
       session_id = response.meta.session_id
       @ACS.Places.query
         page: 1
-        per_page: 200    
+        per_page: 500    
         session_id:session_id
         where:
-          state: '神奈川県'
+          state: prefecture_name
       ,(respose) ->
         callback respose
         
@@ -31,6 +31,5 @@ _login = (ACS,callback) ->
     password:conf.acs.user.password     
   
   ACS.Users.login data, (response) ->
-    console.log response
     callback response
     
