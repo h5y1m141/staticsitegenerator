@@ -1,2 +1,4 @@
 config/default.json
 html/**.html
+html/prefecture/*/**.html
+html/prefecture/**
