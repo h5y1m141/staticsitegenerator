@@ -2,3 +2,6 @@ config/default.json
 html/**.html
 html/prefecture/*/**.html
 html/prefecture/**
+html/googleb1d76eba56610e71.html
+html/robots.txt
+html/sitemap.xml
