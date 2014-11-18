@@ -5,8 +5,16 @@ ACS = require(modulePath)
 
 # templateのファイルを読み込んでおく
 fs = require('fs')
-template = fs.readFileSync('baseTemplate.txt', 'utf-8');
-compiled = _.template(template)
+
+top_page_template = fs.readFileSync('toppageTemplate.txt', 'utf-8')
+top_compiled = _.template(top_page_template)
+
+detail_page_template = fs.readFileSync('baseTemplate.txt', 'utf-8')
+compiled = _.template(detail_page_template)
+
+category_template = fs.readFileSync('indexTemplate.txt', 'utf-8')
+category_compiled = _.template(category_template)
+
 prefecture_list = [
   {
     prefecture_code: 1
@@ -200,28 +208,41 @@ prefecture_list = [
 
 
 acs = new ACS()
+prefecture_data = []
+prefecture_counter = 0
 for prefecture in prefecture_list
   place_query = ((item) ->
     acs.fetch_places(item.name, (result) ->
       if result.success
         places = result.places
+        tbody = []
+        # トップページの元データを準備
+        htmlData = "<tr><td><a href='./prefecture/#{item.prefecture_code}/index.html'>#{item.name}</a></td><td>登録件数：#{places.length}件</td></tr>\n"
+        prefecture_data.push({
+          index:item.prefecture_code
+          htmlData: htmlData
+        }) 
+        prefecture_counter++
+        toppage(prefecture_data) if prefecture_counter is 47
+        
         for place in places
-          if typeof place.website is "undefined"
-            place.website = "調査中"
-          if typeof place.prefecture_cd is "undefined"
-            place.prefecture_cd = item.prefecture_code
-            
-          if place.custom_fields.shopFlg is true
-            place.category = "買えるお店"
+          place.website = "調査中" if typeof place.website is "undefined"
+          prefecture_code = item.prefecture_code if typeof place.prefecture_cd is "undefined"
+
+          if place.custom_fields.shopFlg is "true"
+            category = "買えるお店"
           else
-            place.category = "飲めるお店"
+            category = "飲めるお店"
             
 
           if typeof place.website is "undefined"
             place.shop_data = "特に無し"
           else  
             place.shop_data = place.custom_fields.shopInfo
-              
+
+          # お店の詳細情報ページの生成
+          place.prefecture_cd = prefecture_code  
+          place.category = category    
           _data =  compiled(place)
           fs.writeFile("html/prefecture/#{item.prefecture_code}/#{place.id}.html", _data , (err)->
             if err
@@ -229,7 +250,54 @@ for prefecture in prefecture_list
             else
               # console.log "ファイル出力完了"  
           )
+
+          
+          # 都道府県のインデックスページの元データを準備
+          tbody.push "<tr><td><a href='./#{place.id}.html'>#{place.name}</a></td><td>#{place.address}</td><td>#{category}</td></tr>\n"
+
+
+          
+        # 都道府県のインデックスページ生成
+        category = ( (tbody, state, prefecture_cd) ->
+          console.log "start category state is #{state}"
+          category_data =  category_compiled({
+            tbody         : tbody.join("\n")
+            state         : state
+            prefecture_cd : prefecture_code
+          })
+
+          fs.writeFile("html/prefecture/#{item.prefecture_code}/index.html", category_data , (err)->
+            if err
+              console.log(err)
+            else
+              # console.log "インデックスページの生成完了"  
+          )                   
+        )(tbody, item.name, item.prefecture_code)
+   
     )
 
   )(prefecture)
+
+
+# CraftBeerFanのトップページを生成
+toppage = (prefecture_data) ->
+  console.log "CraftBeerFanのトップページを生成"
+  prefecture_data.sort( (a, b) ->
+    (if a.index > b.index then -1 else 1)
+  ).reverse()
+
+
+  item = []
+  for d in prefecture_data
+    item.push d.htmlData
+    
+  toppage_data = top_compiled ({data: item.join("\n")})
+
+  fs.writeFile("html/index.html", toppage_data , (err)->
+    if err
+      console.log(err)
+    else
+      console.log "トップページ生成完了"  
+  )                   
+
 

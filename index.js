@@ -1,5 +1,5 @@
 (function() {
-  var ACS, acs, compiled, fs, modulePath, path, place_query, prefecture, prefecture_list, template, _, _i, _len;
+  var ACS, acs, category_compiled, category_template, compiled, detail_page_template, fs, modulePath, path, place_query, prefecture, prefecture_counter, prefecture_data, prefecture_list, top_compiled, top_page_template, toppage, _, _i, _len;
 
   path = require("path");
 
@@ -11,9 +11,17 @@
 
   fs = require('fs');
 
-  template = fs.readFileSync('baseTemplate.txt', 'utf-8');
+  top_page_template = fs.readFileSync('toppageTemplate.txt', 'utf-8');
 
-  compiled = _.template(template);
+  top_compiled = _.template(top_page_template);
+
+  detail_page_template = fs.readFileSync('baseTemplate.txt', 'utf-8');
+
+  compiled = _.template(detail_page_template);
+
+  category_template = fs.readFileSync('indexTemplate.txt', 'utf-8');
+
+  category_compiled = _.template(category_template);
 
   prefecture_list = [
     {
@@ -162,45 +170,103 @@
 
   acs = new ACS();
 
+  prefecture_data = [];
+
+  prefecture_counter = 0;
+
   for (_i = 0, _len = prefecture_list.length; _i < _len; _i++) {
     prefecture = prefecture_list[_i];
     place_query = (function(item) {
       return acs.fetch_places(item.name, function(result) {
-        var place, places, _data, _j, _len1, _results;
+        var category, htmlData, place, places, prefecture_code, tbody, _data, _j, _len1;
         if (result.success) {
           places = result.places;
-          _results = [];
+          tbody = [];
+          htmlData = "<tr><td><a href='./prefecture/" + item.prefecture_code + "/index.html'>" + item.name + "</a></td><td>登録件数：" + places.length + "件</td></tr>\n";
+          prefecture_data.push({
+            index: item.prefecture_code,
+            htmlData: htmlData
+          });
+          prefecture_counter++;
+          if (prefecture_counter === 47) {
+            toppage(prefecture_data);
+          }
           for (_j = 0, _len1 = places.length; _j < _len1; _j++) {
             place = places[_j];
             if (typeof place.website === "undefined") {
               place.website = "調査中";
             }
             if (typeof place.prefecture_cd === "undefined") {
-              place.prefecture_cd = item.prefecture_code;
+              prefecture_code = item.prefecture_code;
             }
-            if (place.custom_fields.shopFlg === true) {
-              place.category = "買えるお店";
+            if (place.custom_fields.shopFlg === "true") {
+              category = "買えるお店";
             } else {
-              place.category = "飲めるお店";
+              category = "飲めるお店";
             }
             if (typeof place.website === "undefined") {
               place.shop_data = "特に無し";
             } else {
               place.shop_data = place.custom_fields.shopInfo;
             }
+            place.prefecture_cd = prefecture_code;
+            place.category = category;
             _data = compiled(place);
-            _results.push(fs.writeFile("html/prefecture/" + item.prefecture_code + "/" + place.id + ".html", _data, function(err) {
+            fs.writeFile("html/prefecture/" + item.prefecture_code + "/" + place.id + ".html", _data, function(err) {
               if (err) {
                 return console.log(err);
               } else {
 
               }
-            }));
+            });
+            tbody.push("<tr><td><a href='./" + place.id + ".html'>" + place.name + "</a></td><td>" + place.address + "</td><td>" + category + "</td></tr>\n");
           }
-          return _results;
+          return category = (function(tbody, state, prefecture_cd) {
+            var category_data;
+            console.log("start category state is " + state);
+            category_data = category_compiled({
+              tbody: tbody.join("\n"),
+              state: state,
+              prefecture_cd: prefecture_code
+            });
+            return fs.writeFile("html/prefecture/" + item.prefecture_code + "/index.html", category_data, function(err) {
+              if (err) {
+                return console.log(err);
+              } else {
+
+              }
+            });
+          })(tbody, item.name, item.prefecture_code);
         }
       });
     })(prefecture);
   }
+
+  toppage = function(prefecture_data) {
+    var d, item, toppage_data, _j, _len1;
+    console.log("CraftBeerFanのトップページを生成");
+    prefecture_data.sort(function(a, b) {
+      if (a.index > b.index) {
+        return -1;
+      } else {
+        return 1;
+      }
+    }).reverse();
+    item = [];
+    for (_j = 0, _len1 = prefecture_data.length; _j < _len1; _j++) {
+      d = prefecture_data[_j];
+      item.push(d.htmlData);
+    }
+    toppage_data = top_compiled({
+      data: item.join("\n")
+    });
+    return fs.writeFile("html/index.html", toppage_data, function(err) {
+      if (err) {
+        return console.log(err);
+      } else {
+        return console.log("トップページ生成完了");
+      }
+    });
+  };
 
 }).call(this);
