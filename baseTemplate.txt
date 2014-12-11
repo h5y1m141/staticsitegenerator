@@ -72,7 +72,8 @@
               <td>電話番号：<%= phone_number %></td>
             </tr>
             <tr>
-              <td>お店のWebサイト：<%= website %></td>
+              
+              <td>お店のWebサイト：<%= website %></a></td>
             </tr>
             <tr>
               <td>備考：<%= shop_data %></td>

@@ -1,5 +1,5 @@
 (function() {
-  var ACS, acs, category_compiled, category_template, compiled, detail_page_template, fs, modulePath, path, place_query, prefecture, prefecture_counter, prefecture_data, prefecture_list, top_compiled, top_page_template, toppage, _, _i, _len;
+  var ACS, acs, category_compiled, category_template, compiled, detail_page_template, divide_tokyo_23area, fs, modulePath, path, place_query, prefecture, prefecture_counter, prefecture_data, prefecture_list, revise_place_data, top_compiled, top_page_template, toppage, _, _i, _len;
 
   path = require("path");
 
@@ -191,35 +191,26 @@
           if (prefecture_counter === 47) {
             toppage(prefecture_data);
           }
-          for (_j = 0, _len1 = places.length; _j < _len1; _j++) {
-            place = places[_j];
-            if (typeof place.website === "undefined") {
-              place.website = "調査中";
-            }
-            if (typeof place.prefecture_cd === "undefined") {
-              prefecture_code = item.prefecture_code;
-            }
-            if (place.custom_fields.shopFlg === "true") {
-              category = "買えるお店";
-            } else {
-              category = "飲めるお店";
-            }
-            if (typeof place.website === "undefined") {
-              place.shop_data = "特に無し";
-            } else {
-              place.shop_data = place.custom_fields.shopInfo;
-            }
-            place.prefecture_cd = prefecture_code;
-            place.category = category;
-            _data = compiled(place);
-            fs.writeFile("html/prefecture/" + item.prefecture_code + "/" + place.id + ".html", _data, function(err) {
-              if (err) {
-                return console.log(err);
-              } else {
-
+          if (item.name === "東京都") {
+            tbody = divide_tokyo_23area(places);
+          } else {
+            for (_j = 0, _len1 = places.length; _j < _len1; _j++) {
+              place = places[_j];
+              place = revise_place_data(place);
+              if (typeof place.prefecture_cd === "undefined") {
+                prefecture_code = item.prefecture_code;
               }
-            });
-            tbody.push("<tr><td><a href='./" + place.id + ".html'>" + place.name + "</a></td><td>" + place.address + "</td><td>" + category + "</td></tr>\n");
+              place.prefecture_cd = prefecture_code;
+              _data = compiled(place);
+              fs.writeFile("html/prefecture/" + item.prefecture_code + "/" + place.id + ".html", _data, function(err) {
+                if (err) {
+                  return console.log(err);
+                } else {
+
+                }
+              });
+              tbody.push("<tr><td><a href='./" + place.id + ".html'>" + place.name + "</a></td><td>" + place.address + "</td><td>" + place.category + "</td></tr>\n");
+            }
           }
           return category = (function(tbody, state, prefecture_cd) {
             var category_data;
@@ -267,6 +258,65 @@
         return console.log("トップページ生成完了");
       }
     });
+  };
+
+  revise_place_data = function(place) {
+    var category;
+    if (typeof place.website === "undefined") {
+      place.website = "調査中";
+    }
+    if (place.custom_fields.shopFlg === "true") {
+      category = "買えるお店";
+    } else {
+      category = "飲めるお店";
+    }
+    place.category = category;
+    if (typeof place.website === "undefined") {
+      place.shop_data = "特に無し";
+    } else {
+      place.shop_data = place.custom_fields.shopInfo;
+    }
+    if (place.website === "調査中") {
+      place.website = "調査中";
+    } else {
+      place.website = "<a href='" + place.website + "'>" + place.website + "</a>";
+    }
+    return place;
+  };
+
+  divide_tokyo_23area = function(places) {
+    var place, prefecture_code, result, tbody, tokyo_district_23, tokyo_district_others, _data, _j, _k, _len1, _len2;
+    tokyo_district_23 = [];
+    tokyo_district_others = [];
+    tbody = [];
+    for (_j = 0, _len1 = places.length; _j < _len1; _j++) {
+      place = places[_j];
+      if (place.address.match(/^[^\x00-\x7F]+区/)) {
+        tokyo_district_23.push(place);
+      } else {
+        tokyo_district_others.push(place);
+      }
+    }
+    console.log("東京23区は" + tokyo_district_23.length);
+    console.log("23区以外は" + tokyo_district_others.length);
+    result = tokyo_district_23.concat(tokyo_district_others);
+    for (_k = 0, _len2 = result.length; _k < _len2; _k++) {
+      place = result[_k];
+      prefecture_code = 13;
+      place = revise_place_data(place);
+      console.log(place.name + place.address.match(/^(千代田区|中央区|港区|新宿区|文京区|渋谷区|豊島区|台東区|墨田区|江東区|荒川区|足立区|葛飾区|江戸川区|品川区|目黒区|大田区|世田谷区|中野区|杉並区|練馬区|北区|板橋区)/));
+      place.prefecture_cd = prefecture_code;
+      _data = compiled(place);
+      fs.writeFile("html/prefecture/" + prefecture_code + "/" + place.id + ".html", _data, function(err) {
+        if (err) {
+          return console.log(err);
+        } else {
+
+        }
+      });
+      tbody.push("<tr><td><a href='./" + place.id + ".html'>" + place.name + "</a></td><td>" + place.address + "</td><td>" + place.category + "</td></tr>\n");
+    }
+    return tbody;
   };
 
 }).call(this);

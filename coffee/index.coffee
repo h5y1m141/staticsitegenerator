@@ -225,35 +225,25 @@ for prefecture in prefecture_list
         prefecture_counter++
         toppage(prefecture_data) if prefecture_counter is 47
         
-        for place in places
-          place.website = "調査中" if typeof place.website is "undefined"
-          prefecture_code = item.prefecture_code if typeof place.prefecture_cd is "undefined"
-
-          if place.custom_fields.shopFlg is "true"
-            category = "買えるお店"
-          else
-            category = "飲めるお店"
-            
-
-          if typeof place.website is "undefined"
-            place.shop_data = "特に無し"
-          else  
-            place.shop_data = place.custom_fields.shopInfo
-
-          # お店の詳細情報ページの生成
-          place.prefecture_cd = prefecture_code  
-          place.category = category    
-          _data =  compiled(place)
-          fs.writeFile("html/prefecture/#{item.prefecture_code}/#{place.id}.html", _data , (err)->
-            if err
-              console.log(err)
-            else
-              # console.log "ファイル出力完了"  
-          )
-
-          
-          # 都道府県のインデックスページの元データを準備
-          tbody.push "<tr><td><a href='./#{place.id}.html'>#{place.name}</a></td><td>#{place.address}</td><td>#{category}</td></tr>\n"
+        if item.name is "東京都"
+          tbody = divide_tokyo_23area(places) 
+        else
+          for place in places
+            place = revise_place_data(place)
+            prefecture_code = item.prefecture_code if typeof place.prefecture_cd is "undefined"            
+  
+            # お店の詳細情報ページの生成
+            place.prefecture_cd = prefecture_code  
+            _data =  compiled(place)
+            fs.writeFile("html/prefecture/#{item.prefecture_code}/#{place.id}.html", _data , (err)->
+              if err
+                console.log(err)
+              else
+                # console.log "ファイル出力完了"  
+            )
+  
+            # 都道府県のインデックスページの元データを準備
+            tbody.push "<tr><td><a href='./#{place.id}.html'>#{place.name}</a></td><td>#{place.address}</td><td>#{place.category}</td></tr>\n"
 
 
           
@@ -300,4 +290,58 @@ toppage = (prefecture_data) ->
       console.log "トップページ生成完了"  
   )                   
 
+revise_place_data = (place) ->
+  place.website = "調査中" if typeof place.website is "undefined"
 
+  if place.custom_fields.shopFlg is "true"
+    category = "買えるお店"
+  else
+    category = "飲めるお店"
+    
+  place.category = category
+  if typeof place.website is "undefined"
+    place.shop_data = "特に無し"
+  else  
+    place.shop_data = place.custom_fields.shopInfo
+    
+  if place.website is "調査中"
+    place.website = "調査中"
+  else
+    place.website = "<a href='#{place.website}'>#{place.website}</a>"
+  return place
+  
+divide_tokyo_23area = (places) ->
+  tokyo_district_23 = []
+  tokyo_district_others = []
+  tbody = []
+  for place in places
+    # 23区のいづれかにマッチ
+    # [^\x00-\x7F]でアスキー文字以外、つまり全角文字にマッチさせてそれが1文字以上続き区が含まれる
+    if place.address.match(/^[^\x00-\x7F]+区/)
+      tokyo_district_23.push place
+    else
+      tokyo_district_others.push place
+      
+  console.log "東京23区は#{tokyo_district_23.length}"
+  console.log "23区以外は#{tokyo_district_others.length}"
+  result = tokyo_district_23.concat(tokyo_district_others)
+
+  for place in result
+    prefecture_code = 13
+    place = revise_place_data(place)
+    console.log place.name + place.address.match(/^(千代田区|中央区|港区|新宿区|文京区|渋谷区|豊島区|台東区|墨田区|江東区|荒川区|足立区|葛飾区|江戸川区|品川区|目黒区|大田区|世田谷区|中野区|杉並区|練馬区|北区|板橋区)/)
+
+    # お店の詳細情報ページの生成
+    place.prefecture_cd = prefecture_code  
+    _data =  compiled(place)
+    fs.writeFile("html/prefecture/#{prefecture_code}/#{place.id}.html", _data , (err)->
+      if err
+        console.log(err)
+      else
+        # console.log "ファイル出力完了"  
+    )
+
+    # 都道府県のインデックスページの元データを準備
+    tbody.push "<tr><td><a href='./#{place.id}.html'>#{place.name}</a></td><td>#{place.address}</td><td>#{place.category}</td></tr>\n"
+  
+  return tbody
