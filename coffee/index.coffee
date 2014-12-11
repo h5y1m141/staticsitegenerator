@@ -303,7 +303,11 @@ revise_place_data = (place) ->
     place.shop_data = "特に無し"
   else  
     place.shop_data = place.custom_fields.shopInfo
-  
+    
+  if place.website is "調査中"
+    place.website = "調査中"
+  else
+    place.website = "<a href='#{place.website}'>#{place.website}</a>"
   return place
   
 divide_tokyo_23area = (places) ->
@@ -325,7 +329,7 @@ divide_tokyo_23area = (places) ->
   for place in result
     prefecture_code = 13
     place = revise_place_data(place)
-    console.log place.name
+    console.log place.name + place.address.match(/^(千代田区|中央区|港区|新宿区|文京区|渋谷区|豊島区|台東区|墨田区|江東区|荒川区|足立区|葛飾区|江戸川区|品川区|目黒区|大田区|世田谷区|中野区|杉並区|練馬区|北区|板橋区)/)
 
     # お店の詳細情報ページの生成
     place.prefecture_cd = prefecture_code  

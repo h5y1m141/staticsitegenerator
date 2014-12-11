@@ -276,6 +276,11 @@
     } else {
       place.shop_data = place.custom_fields.shopInfo;
     }
+    if (place.website === "調査中") {
+      place.website = "調査中";
+    } else {
+      place.website = "<a href='" + place.website + "'>" + place.website + "</a>";
+    }
     return place;
   };
 
@@ -299,7 +304,7 @@
       place = result[_k];
       prefecture_code = 13;
       place = revise_place_data(place);
-      console.log(place.name);
+      console.log(place.name + place.address.match(/^(千代田区|中央区|港区|新宿区|文京区|渋谷区|豊島区|台東区|墨田区|江東区|荒川区|足立区|葛飾区|江戸川区|品川区|目黒区|大田区|世田谷区|中野区|杉並区|練馬区|北区|板橋区)/));
       place.prefecture_cd = prefecture_code;
       _data = compiled(place);
       fs.writeFile("html/prefecture/" + prefecture_code + "/" + place.id + ".html", _data, function(err) {
